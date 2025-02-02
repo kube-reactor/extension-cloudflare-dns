@@ -1,25 +1,43 @@
 
 function cloudflare_dns_records () {
+  DNS_A_RECORDS=""
   for host in $(dns_hosts); do
     for ip in $(dns_ip); do
-      echo "$host - $ip"
+      local a_host="${host%".$PRIMARY_DOMAIN"}"
+      local a_record="\"${a_host}\":\"${ip}\""
+      if [ ! "$DNS_A_RECORDS" ]; then
+        DNS_A_RECORDS="${DNS_A_RECORDS}${a_record}"
+      else
+        DNS_A_RECORDS="${DNS_A_RECORDS},${a_record}"
+      fi
     done
   done
+  export TF_VAR_a_records="{${DNS_A_RECORDS}}"
 
+  DNS_CNAME_RECORDS=""
   for host in $(dns_hosts); do
     for hostname in $(dns_hostname); do
-      echo "$host - $hostname"
+      local cname_host="${host%".$PRIMARY_DOMAIN"}"
+      local cname_record="\"${cname_host}\":\"${hostname}\""
+      if [ ! "$DNS_CNAME_RECORDS" ]; then
+        DNS_CNAME_RECORDS="${DNS_CNAME_RECORDS}${cname_record}"
+      else
+        DNS_CNAME_RECORDS="${DNS_CNAME_RECORDS},${cname_record}"
+      fi
     done
   done
+  export TF_VAR_cname_records="{${DNS_CNAME_RECORDS}}"
+
+  debug "TF_VAR_a_records: ${TF_VAR_a_records}"
+  debug "TF_VAR_cname_records: ${TF_VAR_cname_records}"
 }
 
 function save_dns_records_cloudflare () {
-  echo "saving dns records - cloudflare"
   cloudflare_dns_records
-  #provisioner_create cloudflare_dns "${__cloudflare_dns_project_dir}"
+  provisioner_create cloudflare_dns "${__cloudflare_dns_project_dir}"
 }
 
 function remove_dns_records_cloudflare () {
   cloudflare_dns_records
-  #provisioner_destroy cloudflare_dns "${__cloudflare_dns_project_dir}"
+  provisioner_destroy cloudflare_dns "${__cloudflare_dns_project_dir}"
 }
