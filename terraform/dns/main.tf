@@ -1,12 +1,10 @@
 data "cloudflare_zones" "this" {
-  filter {
-    name = var.root_domain
-  }
+  name = var.root_domain
 }
 
-resource "cloudflare_record" "a_record" {
+resource "cloudflare_dns_record" "a_record" {
   for_each = var.a_records
-  zone_id  = data.cloudflare_zone.this.id
+  zone_id  = data.cloudflare_zones.this.result[0].id
   name     = each.key
   type     = "A"
   content  = each.value
@@ -14,11 +12,11 @@ resource "cloudflare_record" "a_record" {
   proxied  = false
 }
 
-resource "cloudflare_record" "cname_record" {
+resource "cloudflare_dns_record" "cname_record" {
   for_each = var.cname_records
-  zone_id  = data.cloudflare_zone.this.id
+  zone_id  = data.cloudflare_zones.this.result[0].id
   name     = each.key
-  type     = "A"
+  type     = "CNAME"
   content  = each.value
   ttl      = 1
   proxied  = false
