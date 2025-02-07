@@ -10,7 +10,7 @@ export __cloudflare_dns_terraform_dir="${__cloudflare_dns_extension_dir}/terrafo
 
 export __cloudflare_dns_project_dir="${__cloudflare_dns_terraform_dir}/dns"
 
-if [ "$DNS_PROVIDER" == "cloudflare" ]; then
+if [ "${DNS_PROVIDER:-}" == "cloudflare" ]; then
   #
   # Cloudflare
   #
